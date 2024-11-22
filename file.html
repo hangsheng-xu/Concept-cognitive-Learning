@@ -359,7 +359,7 @@ document.addEventListener('click', function(event) {
             const matrixData = JSON.stringify(matrix);
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/concept_lattice';
+            form.action = '/Concept-cognitive-Learning/concept_lattice';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'matrix';
@@ -374,7 +374,7 @@ document.addEventListener('click', function(event) {
             const matrixData = JSON.stringify(matrix);
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/iceberg';
+            form.action = '/Concept-cognitive-Learning/iceberg';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'matrix';
@@ -389,7 +389,7 @@ document.addEventListener('click', function(event) {
             const matrixData = JSON.stringify(matrix);
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/credible';
+            form.action = '/Concept-cognitive-Learning/credible';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'matrix';
@@ -404,7 +404,7 @@ document.addEventListener('click', function(event) {
             const matrixData = JSON.stringify(matrix);
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/top_k';
+            form.action = '/Concept-cognitive-Learning/top_k';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'matrix';
@@ -419,7 +419,7 @@ document.addEventListener('click', function(event) {
             const matrixData = JSON.stringify(matrix);
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/fuzzy';
+            form.action = '/Concept-cognitive-Learning/fuzzy';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'matrix';
@@ -434,7 +434,7 @@ document.addEventListener('click', function(event) {
             const matrixData = JSON.stringify(matrix);
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = '/fairness';
+            form.action = '/Concept-cognitive-Learning/fairness';
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'matrix';
@@ -448,8 +448,8 @@ document.addEventListener('click', function(event) {
 <body onload="toggleSubmenu(event, 'fileSubmenu', true)">
 
     <nav>
-        <a href="/">首页</a>
-        <a href="/file" class="submenu-link" onclick="toggleSubmenu(event, 'fileSubmenu', true)">文件</a>
+        <a href="/Concept-cognitive-Learning">首页</a>
+        <a href="/Concept-cognitive-Learning/file" class="submenu-link" onclick="toggleSubmenu(event, 'fileSubmenu', true)">文件</a>
         <div id="fileSubmenu" class="submenu">
             <a href="#" onclick="showPrompt()">新建</a>
             <a href="#" onclick="saveMatrix()">保存</a>
@@ -464,8 +464,8 @@ document.addEventListener('click', function(event) {
             <a href="#" onclick="generatefuzzy()">生成模糊概念格</a>
             <a href="#" onclick="generatefairness()">生成公平概念格</a>
         </div>
-        <a href="/datasets">经典数据集</a>
-        <a href="/about">关于</a>
+        <a href="/Concept-cognitive-Learning/datasets">经典数据集</a>
+        <a href="/Concept-cognitive-Learning/about">关于</a>
     </nav>
 
     <div class="button-container">
