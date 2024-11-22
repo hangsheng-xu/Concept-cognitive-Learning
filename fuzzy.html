@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fuzzy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: relative;
+        }
+
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #tree-container {
+            width: 25%;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+        }
+
+        #graph-container {
+            width: 75%;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        #tree li {
+            list-style-type: none;
+        }
+
+        #tree span {
+            cursor: pointer;
+            display: block;
+            padding: 5px;
+            border: 1px solid #ccc;
+            margin: 2px;
+        }
+
+        button {
+            margin-top: 10px;
+            display: block;
+        }
+
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">首页</a>
+        <a href="/file">文件</a>
+        <a href="/algorithm">算法分析</a>
+        <a href="/datasets">经典数据集</a>
+        <a href="/about">关于</a>
+    </nav>
+    <div id="container">
+        <div id="tree-container">
+            <ul id="tree">
+                <li>
+                    <span>概念格</span>
+                    <ul>
+                        <li><span>等势概念</span>
+                            <ul id="shell-lang"></ul>
+                        </li>
+                        <li><span>非等势概念</span>
+                            <ul id="compile-lang"></ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <button id="analyze-a">分析</button>
+        </div>
+        <div id="graph-container">
+            <div id="graph"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script>
+        class Pair {
+            constructor(l, r) {
+                this.l = l;
+                this.r = r;
+            }
+
+            getL() {
+                return this.l;
+            }
+
+            getR() {
+                return this.r;
+            }
+
+            setL(l) {
+                this.l = l;
+            }
+
+            setR(r) {
+                this.r = r;
+            }
+
+            setLR(l, r) {
+                this.l = l;
+                this.r = r;
+            }
+
+            equals(other) {
+                return this.l === other.l && this.r === other.r;
+            }
+
+            hash() {
+                return this.l; // 注意：JavaScript 没有像 Python 的 hash() 那样的内置哈希函数
+            }
+
+            reversal() {
+                const temp = this.l;
+                this.l = this.r;
+                this.r = temp;
+                return this;
+            }
+        }
+
+        class BasicCL {
+            constructor() {
+                this.dictAll = {};
+                this.objResult = new Set();
+                this.attrResult = new Set();
+                this.bpcAllCL = new Set();
+            }
+
+            getBPCliqueObj(adjMat, obj, attr, numObj, numAttr) {
+                const tmpBpc = [];
+
+                for (let i = 0; i < numObj; i++) {
+                    const tmpList = [];
+                    for (let j = 0; j < numAttr; j++) {
+                        if (adjMat[i][j] == 1) {
+                            tmpList.push(attr[j]);
+                        }
+                    }
+                    const tmpPair = new Pair(obj[i], tmpList);
+                    tmpBpc.push(tmpPair);
+                }
+
+                return tmpBpc;
+            }
+
+            getBPCliqueAttr(adjMat, obj, attr, numObj, numAttr) {
+                const tmpBpc = [];
+
+                for (let i = 0; i < numAttr; i++) {
+                    const tmpList = [];
+                    for (let j = 0; j < numObj; j++) {
+                        if (adjMat[j][i] == 1) {
+                            tmpList.push(obj[j]);
+                        }
+                    }
+                    const tmpPair = new Pair(attr[i], tmpList);
+                    tmpBpc.push(tmpPair);
+                }
+
+                return tmpBpc;
+            }
+
+            objRes(obj, attr, bpcObj, bpcAttr) {
+        // 将特殊概念放入
+        const spcObj = [...obj]; // 将 obj 转换为数组
+        const objTest = [spcObj]; // 存放特殊概念的数组
+        this.objResult.add(JSON.stringify(spcObj)); // 将特殊概念添加到结果集中
+
+        for (let i = 0; i < attr.length; i++) {
+            const objTemp = new Set(this.objResult); // 复制结果集
+            const oneObj = new Set(bpcAttr[i].getR()); // 获取当前属性对应的集合
+
+            for (let j of objTemp) {
+                const temp = new Set(JSON.parse(j)); // 将元组转换为集合
+                // 执行交集运算
+                for (let value of temp) {
+                    if (!oneObj.has(value)) {
+                        temp.delete(value); // 删除不在 oneObj 的元素
+                    }
+                }
+                // 将结果排序并添加到结果集中
+                this.objResult.add(JSON.stringify([...temp].sort()));
+            }
+        }
+
+        const nullContent = JSON.stringify([]); // 空集
+        if (this.objResult.has(nullContent)) {
+            this.objResult.delete(nullContent); // 移除空集
+            this.objResult.delete(JSON.stringify(spcObj)); // 移除特殊概念
+        }
+
+        return this.objResult;
+    }
+
+
+    intersectForObject(obt, bpcObj) {
+        let tupTem = []; // Store the corresponding attributes of obj
+        let tmpPair = new Pair(0, 0);
+
+        let count = 0;
+        obt = Array.from(obt); // Convert obt to an array
+        obt = obt.filter(item => !isNaN(item)).map(Number);
+        console.log(obt);
+        const leng = obt.length;
+
+        if (leng === 1) {
+            const num = obt[0] - 1;
+            tupTem = Array.from(bpcObj[num].getR());
+        } else {
+            for (const i of obt) {
+                count += 1;
+                if (tupTem.length === 0 && count !== leng) {
+                    tupTem = Array.from(bpcObj[i - 1].getR());
+                } else {
+                    const set1 = new Set(tupTem);
+                    const set2 = new Set(bpcObj[i - 1].getR());
+                    const intersection = new Set();
+
+set2.forEach(item => {
+    if (set1.has(item)) {
+        intersection.add(item);
+    }
+});
+                    tupTem = Array.from(intersection).sort();
+                }
+            }
+        }
+
+        if (tupTem.length > 0) {
+            tmpPair.setLR(Array.from(obt), tupTem);
+        }
+
+        return tmpPair;
+    }
+
+ intersectForObj(obt, bpcObj) {
+        let tupTem = []; // 存储 obj 对应的属性列表
+        const tmpPair = new Pair(0, 0);
+
+        // 将 obt 转换为零索引
+        const index = obt - 1;
+
+        // 检查 tupTem 是否为空
+        if (tupTem.length === 0) {
+            tupTem = Array.from(bpcObj[index].getR());
+            // console.log(tupTem);
+        } else {
+            const set1 = new Set(tupTem);
+            const set2 = new Set(bpcObj[index].getR());
+
+            // 计算交集
+            set1.forEach(item => {
+                if (!set2.has(item)) {
+                    set1.delete(item);
+                }
+            });
+
+            tupTem = Array.from(set1).sort(); // 转换为数组并排序
+        }
+
+        return tupTem; // 返回结果
+    }
+
+    finalBpcAll(objResult, bpcObj, bpcAttr) {
+        const bpCliques = [];
+        const attrResult = new Set();
+
+        for (const obt of objResult) {
+            let pair = this.intersectForObject(obt, bpcObj);
+
+            if (pair.getR() !== 0) {
+                pair = this.intersectForObject(pair.getR(), bpcAttr);
+
+                // 假设 reversal() 方法已定义
+                pair = pair.reversal();
+
+                bpCliques.push(pair);
+                attrResult.add(pair.getR());
+            }
+        }
+
+        return [bpCliques, Array.from(attrResult)];
+    }
+
+    finalBpcAllforExtent(attrResult, bpcObj, bpcAttr) {
+        const bpCliques = [];
+        const objResult = new Set();
+        for (let att of attrResult) {
+            const pair = this.intersectForObject(att, bpcAttr);
+            bpCliques.push(this.intersectForObject(pair.getR(), bpcObj));
+            objResult.add(pair.getL());
+        }
+        return [bpCliques, objResult];
+    }
+
+        }
+
+    window.onload = function() {
+            const matrixData = {{ matrix|tojson | safe }}; // 将矩阵数据传递给 JavaScript
+            if (matrixData) {
+                    const matrix = matrixData;
+                    console.log(matrix);
+                    processMatrix(matrix);
+            }
+        };
+
+    function processMatrix(matrix) {
+        let LJ = 0; // 模糊等势概念临界值
+
+try {
+
+    const input = prompt("输入临界值（0~1）", "0.5");
+
+    // 检查输入是否有效
+    if (input !== null) { // 用户点击了确定
+        LJ = parseFloat(input); // 将输入值转换为浮点数
+    }
+
+    // 限制 count 的范围在 0 到 1 之间
+    if (LJ > 1) {
+        LJ = 1;
+    }
+    if (LJ < 0) {
+        LJ = 0;
+    }
+} catch (error) {
+    LJ = 0; // 捕捉异常并将 count 设为 0
+}
+    const numObj = matrix.length;
+    const numAttr = matrix.length;
+    const obj = Array.from({ length: numObj }, (_, i) => i + 1);
+    const attr = Array.from({ length: numAttr }, (_, i) => i + 1);
+    console.log(numObj, numAttr);
+    for (let i = 0; i < numObj; i++) {
+        for (let j = 0; j < numAttr; j++) {
+            if (matrix[i][j] >= LJ) {
+                matrix[i][j] = 1;
+            } else {
+                matrix[i][j] = 0;
+                };
+            }
+        }
+    const basicCL = new BasicCL();
+
+    // Get bipartite cliques
+    const bpcObj = basicCL.getBPCliqueObj(matrix, obj, attr, numObj, numAttr);
+    const bpcAttr = basicCL.getBPCliqueAttr(matrix, obj, attr, numObj, numAttr);
+
+    // Process results to get object results
+    const objResult = basicCL.objRes(obj, attr, bpcObj, bpcAttr);
+    console.log(bpcObj, bpcAttr, objResult);
+
+    // Final bipartite cliques
+    let bpCliques = basicCL.finalBpcAll(objResult, bpcObj, bpcAttr)[0];
+    console.log(bpCliques);
+
+    // Create copies and tuples for special objects and attributes
+    const unspcBpcliques = [...bpCliques];
+
+    const spcObj = obj.map(id => id);
+    const spcAttr = attr.map(id => id);
+
+    const spcC1 = new Pair(spcObj, []);
+    const spcC2 = new Pair([], spcAttr);
+
+    bpCliques.push(spcC1);
+    bpCliques.push(spcC2);
+    console.log(bpCliques);
+
+
+    // Update tree view
+    const shellLang = document.getElementById('shell-lang');
+    const compileLang = document.getElementById('compile-lang');
+
+    bpCliques.forEach(temp => {
+        const str2 = `${temp.getL().join(' ')}#${temp.getR().join(' ')}`;
+        if (temp.getL().toString() === temp.getR().toString()) {
+            const li = document.createElement('li');
+            li.textContent = str2;
+            li.onclick = () => highlightNodes(temp);
+            shellLang.appendChild(li);
+        } else {
+            const li = document.createElement('li');
+            li.textContent = str2;
+            compileLang.appendChild(li);
+        }
+    });
+
+    // Generate the graph
+    renderChart(bpcObj, matrix);
+}
+
+function highlightNodes(nodes) {
+            const myChart = echarts.getInstanceByDom(document.getElementById('graph'));
+            const option = myChart.getOption();
+
+            // Reset all nodes to default color
+            option.series[0].data.forEach(node => {
+                node.itemStyle = { color: 'rgb(0,0,255)' }; // 默认颜色
+            });
+            // Highlight the selected nodes
+            if (nodes.getL().toString() === nodes.getR().toString()) {
+
+                nodes.getL().forEach(nodeIndex => {
+                    const node = option.series[0].data.find(n => n.name === `结点${nodeIndex}`);
+                    if (node) {
+                        node.itemStyle = { color: 'rgb(255,0,0)' }; // 红色
+                    }
+                })
+            };
+
+            myChart.setOption(option);
+        }
+
+function renderChart(data, adjMat) {
+    const myChart = echarts.init(document.getElementById('graph'));
+
+    const nodes = data.map((pair, index) => ({
+        name: `结点${pair.getL()}`,
+        value: pair.getR().length,
+        category: pair.getR().length > 0 ? 1 : 0,
+        symbolSize: 50 // Enlarge the nodes
+    }));
+
+    const links = [];
+    for (let i = 0; i < adjMat.length; i++) {
+        for (let j = 0; j < adjMat[i].length; j++) {
+            if (adjMat[i][j] == 1) {
+                links.push({
+                    source: `结点${i + 1}`,
+                    target: `结点${j + 1}`,
+                    value: 1
+                });
+            }
+        }
+    }
+
+    const option = {
+        title: {
+            text: '社交网络分析'
+        },
+        tooltip: {},
+        series: [{
+            type: 'graph',
+            layout: 'force',
+            data: nodes,
+            links: links,
+            categories: [
+                { name: '等势结点', itemStyle: { color: 'rgb(255,0,0)' } },
+                { name: '未选中结点', itemStyle: { color: 'rgb(0,0,255)' } }
+            ],
+            roam: true,
+            label: {
+                show: true,
+                position: 'right'
+            },
+            force: {
+                repulsion: 4000
+            }
+        }]
+    };
+
+    myChart.setOption(option);
+}
+
+    </script>
+</body>
+</html>
+

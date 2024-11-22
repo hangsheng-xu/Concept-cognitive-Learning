@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Datasets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: relative;
+        }
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block; /* Keep links on the same line */
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .submenu {
+            position: absolute; /* Absolute positioning */
+            background-color: #444; /* Submenu background color */
+            min-width: 160px; /* Submenu width */
+            z-index: 1; /* Ensure submenu is on top */
+        }
+        nav a:hover + .submenu {
+            display: block; /* Show submenu on hover */
+        }
+        .submenu a {
+            display: block; /* Make submenu links take full width */
+            padding: 10px; /* Padding for submenu links */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/index1">Home</a>
+        <a href="/file1">Files</a>
+        <a href="/algorithm1">Algorithm Analysis</a>
+        <a href="/datasets1">Classic Datasets</a>
+        <!-- Submenu -->
+        <div class="submenu">
+            <a href="/karate1">Karate Dataset</a>
+            <a href="/dolphins1">Dolphins Dataset</a>
+            <a href="/lesmis1">Les Misérables Dataset</a>
+            <a href="/celegansneural1">C.elegans Neural Dataset</a>
+            <a href="/netscience1">Network Science Dataset</a>
+        </div>
+        <a href="/about1">About</a>
+    </nav>
+</body>
+</html>

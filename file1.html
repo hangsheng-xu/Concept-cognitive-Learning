@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: fixed; /* Fixed at the top */
+            top: 0; /* Distance from the top is 0 */
+            left: 0; /* Distance from the left is 0 */
+            width: 100%; /* Make the menu width 100% */
+            z-index: 1000; /* Ensure the menu is above other elements */
+            text-align: left; /* Left aligned */
+        }
+
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .submenu {
+            position: absolute; /* Absolute positioning */
+            background-color: #444; /* Submenu background color */
+            min-width: 160px; /* Submenu width */
+            z-index: 1; /* Ensure submenu is above other elements */
+        }
+        .submenu a {
+            display: block; /* Submenu links as block elements */
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        td {
+            cursor: pointer;
+        }
+        td:hover {
+            background-color: #f0f0f0;
+        }
+        .button-container {
+            display: flex; /* Use Flexbox */
+            justify-content: center; /* Center align horizontally */
+            margin-top: 150px; /* Add top margin */
+        }
+
+        .button-container button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script>
+        let currentMatrix = []; // To store the current matrix
+        let attributes = []; // To store attributes
+
+        function showPrompt() {
+            var vertexCount = prompt("Enter the number of vertices (integer)", "5");
+            if (vertexCount !== null && !isNaN(vertexCount) && vertexCount > 0) {
+                vertexCount = parseInt(vertexCount);
+                createMatrix(vertexCount);
+            }
+        }
+
+        function createMatrix(size) {
+            const matrixContainer = document.getElementById('matrixContainer');
+            matrixContainer.innerHTML = '';
+
+            const table = document.createElement('table');
+            currentMatrix = [];
+
+            const headerRow = document.createElement('tr');
+            const emptyHeader = document.createElement('th');
+            headerRow.appendChild(emptyHeader);
+            for (let i = 0; i < size; i++) {
+                const th = document.createElement('th');
+                th.textContent = i + 1;
+                headerRow.appendChild(th);
+            }
+            table.appendChild(headerRow);
+
+            for (let i = 0; i < size; i++) {
+                const row = document.createElement('tr');
+                const rowData = [];
+
+                const rowHeader = document.createElement('th');
+                rowHeader.textContent = i + 1;
+                row.appendChild(rowHeader);
+
+                for (let j = 0; j < size; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = (i === j) ? 1 : 0;
+                    rowData.push(cell.textContent);
+                    cell.onclick = function() {
+                        toggleCell(i, j, cell);
+                    };
+                    row.appendChild(cell);
+                }
+                currentMatrix.push(rowData);
+                table.appendChild(row);
+            }
+
+            matrixContainer.appendChild(table);
+        }
+
+        function toggleCell(i, j, cell) {
+            const currentValue = parseInt(cell.textContent);
+            const newValue = 1 - currentValue;
+            cell.textContent = newValue;
+            currentMatrix[i][j] = newValue;
+
+            const symmetricCell = document.querySelector(`tr:nth-child(${j + 2}) td:nth-child(${i + 2})`);
+            if (symmetricCell) {
+                symmetricCell.textContent = newValue;
+                currentMatrix[j][i] = newValue;
+            }
+        }
+
+        function saveMatrix() {
+            const workbook = XLSX.utils.book_new();
+            const worksheetData = [];
+
+            // Add header row
+            const headerRow = [''];
+            for (let i = 0; i < currentMatrix.length; i++) {
+                headerRow.push(i + 1);
+            }
+            // Add attribute headers
+            attributes.forEach(attr => {
+                headerRow.push(attr.name);
+            });
+            worksheetData.push(headerRow);
+
+            // Add data rows
+            currentMatrix.forEach((rowData, index) => {
+                const rowArray = [index + 1].concat(rowData);
+                // Add attribute values
+                attributes.forEach(attr => {
+                    const attrCell = document.querySelector(`#matrixContainer table tr:nth-child(${index + 2}) td:last-child`);
+                    rowArray.push(attrCell ? attrCell.textContent : '');
+                });
+                worksheetData.push(rowArray);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Matrix");
+
+            XLSX.writeFile(workbook, 'matrix.xlsx');
+        }
+
+        function openFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx, .xls';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    createMatrixFromData(json);
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            input.click();
+        }
+
+        function createMatrixFromData(data) {
+            const matrixContainer = document.getElementById('matrixContainer');
+            matrixContainer.innerHTML = '';
+
+            const table = document.createElement('table');
+            currentMatrix = [];
+
+            data.shift(); // Remove header row
+
+            data.forEach((rowArray, rowIndex) => {
+                const row = document.createElement('tr');
+                const rowData = [];
+
+                rowArray.shift(); // Remove row number
+
+                const rowHeader = document.createElement('th');
+                rowHeader.textContent = rowIndex + 1;
+                row.appendChild(rowHeader);
+
+                rowArray.forEach((cellValue, cellIndex) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellValue;
+                    rowData.push(cellValue);
+                    cell.onclick = function() {
+                        toggleCell(rowIndex, cellIndex, cell);
+                    };
+                    row.appendChild(cell);
+                });
+
+                currentMatrix.push(rowData);
+                table.appendChild(row);
+            });
+
+            const headerRow = document.createElement('tr');
+            const emptyHeader = document.createElement('th');
+            headerRow.appendChild(emptyHeader);
+            for (let i = 0; i < currentMatrix.length; i++) {
+                const th = document.createElement('th');
+                th.textContent = i + 1;
+                headerRow.appendChild(th);
+            }
+            table.insertBefore(headerRow, table.firstChild);
+
+            matrixContainer.appendChild(table);
+        }
+
+        function addNodes() {
+            var nodeCount = prompt("Enter the number of nodes to add (integer)", "1");
+            if (nodeCount !== null && !isNaN(nodeCount) && nodeCount > 0) {
+                nodeCount = parseInt(nodeCount);
+                const newSize = currentMatrix.length + nodeCount;
+                const newMatrix = [];
+
+                for (let i = 0; i < newSize; i++) {
+                    const row = [];
+                    for (let j = 0; j < newSize; j++) {
+                        if (i < currentMatrix.length && j < currentMatrix.length) {
+                            row.push(currentMatrix[i][j]);
+                        } else {
+                            row.push(0);
+                        }
+                    }
+                    newMatrix.push(row);
+                }
+
+                currentMatrix = newMatrix;
+                createMatrix(newSize);
+            }
+        }
+
+        function removeNodes() {
+            var nodeCount = prompt("Enter the number of nodes to remove (integer)", "1");
+            if (nodeCount !== null && !isNaN(nodeCount) && nodeCount > 0) {
+                nodeCount = parseInt(nodeCount);
+                const newSize = Math.max(currentMatrix.length - nodeCount, 1); // Ensure at least 1 node exists
+                currentMatrix = currentMatrix.slice(0, newSize).map(row => row.slice(0, newSize));
+                createMatrix(newSize);
+            }
+        }
+
+        function addAttribute() {
+            const attributeName = prompt("Enter attribute name", "");
+            if (attributeName) {
+                const classCount = prompt("Enter number of attribute classes (integer)", "1");
+                if (classCount !== null && !isNaN(classCount) && classCount > 0) {
+                    const parsedClassCount = parseInt(classCount);
+                    const classes = [];
+                    for (let i = 0; i < parsedClassCount; i++) {
+                        const className = prompt(`Enter attribute classification ${i + 1}`, "");
+                        if (className) {
+                            classes.push(className);
+                        }
+                    }
+                    attributes.push({ name: attributeName, classes: classes });
+                    addAttributeColumn(attributeName, classes);
+                }
+            }
+        }
+
+        function addAttributeColumn(attributeName, classes) {
+            const matrixContainer = document.getElementById('matrixContainer');
+            const table = matrixContainer.querySelector('table');
+
+            // Add attribute column header
+            const headerRow = table.querySelector('tr');
+            const attributeHeader = document.createElement('th');
+            attributeHeader.textContent = attributeName;
+            headerRow.appendChild(attributeHeader);
+
+            // Add cells for the attribute column
+            for (let i = 1; i < table.rows.length; i++) {
+                const cell = document.createElement('td');
+                cell.textContent = classes[0]; // Default value is the first class
+                cell.onclick = function() {
+                    toggleAttributeCell(cell, classes);
+                };
+                table.rows[i].appendChild(cell);
+            }
+        }
+
+        function toggleAttributeCell(cell, classes) {
+            const currentValue = cell.textContent;
+            const currentIndex = classes.indexOf(currentValue);
+            const newIndex = (currentIndex + 1) % classes.length; // Cycle through classes
+            cell.textContent = classes[newIndex];
+        }
+
+        function toggleSubmenu(event, submenuId, showImmediately = false) {
+            event.preventDefault(); // Prevent default action
+            const submenus = document.querySelectorAll('.submenu');
+
+            submenus.forEach(submenu => {
+                if (submenu.id === submenuId) {
+                    if (showImmediately) {
+                        submenu.style.display = 'block'; // Show submenu immediately
+                    } else {
+                        submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+                    }
+                } else {
+                    submenu.style.display = 'none'; // Hide other submenus
+                }
+            });
+        }
+
+        // Hide submenus when clicking elsewhere on the page
+        document.addEventListener('click', function(event) {
+            const submenus = document.querySelectorAll('.submenu');
+            submenus.forEach(submenu => {
+                if (!submenu.contains(event.target) && !event.target.closest('.submenu-link')) {
+                    submenu.style.display = 'none';
+                }
+            });
+        });
+
+        // Get current matrix data
+        function getCurrentMatrix() {
+            // Assume the matrix is stored in the currentMatrix variable
+            return currentMatrix;
+        }
+
+        // Jump to generate concept lattice page and pass matrix data
+        function generateConceptLattice() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/concept_lattice1';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generateIceberg() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/iceberg1';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generateCredible() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/credible1';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generateTopK() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/top_k1';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generateFuzzy() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/fuzzy1';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generateFairness() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/fairness1';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+</head>
+<body onload="toggleSubmenu(event, 'fileSubmenu', true)">
+
+    <nav>
+        <a href="/index1">Home</a>
+        <a href="/file1" class="submenu-link" onclick="toggleSubmenu(event, 'fileSubmenu', true)">File</a>
+        <div id="fileSubmenu" class="submenu">
+            <a href="#" onclick="showPrompt()">New</a>
+            <a href="#" onclick="saveMatrix()">Save</a>
+            <a href="#" onclick="openFile()">Open</a>
+        </div>
+        <a href="#" class="submenu-link" onclick="toggleSubmenu(event, 'algorithmSubmenu', false)">Algorithm Analysis</a>
+        <div id="algorithmSubmenu" class="submenu">
+            <a href="#" onclick="generateConceptLattice()">Generate Concept Lattice</a>
+            <a href="#" onclick="generateIceberg()">Generate Iceberg Equivalence Concept</a>
+            <a href="#" onclick="generateCredible()">Generate Credible Clique Structure</a>
+            <a href="#" onclick="generateTopK()">Generate Top-k Max Clique</a>
+            <a href="#" onclick="generateFuzzy()">Generate Fuzzy Concept Lattice</a>
+            <a href="#" onclick="generateFairness()">Generate Fairness Concept Lattice</a>
+        </div>
+        <a href="/datasets1">Classic Datasets</a>
+        <a href="/about1">About</a>
+    </nav>
+
+    <div class="button-container">
+        <button onclick="addNodes()">Add Nodes</button>
+        <button onclick="removeNodes()">Remove Nodes</button>
+        <button onclick="addAttribute()">Add Attribute</button>
+    </div>
+
+    <div id="matrixContainer"></div>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lesmis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: relative;
+        }
+
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block; /* 使链接在一行上 */
+        }
+
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .submenu {
+            display: none; /* 默认隐藏子菜单 */
+            position: absolute; /* 绝对定位 */
+            background-color: #444; /* 子菜单背景颜色 */
+            min-width: 160px; /* 子菜单宽度 */
+            z-index: 1; /* 确保子菜单在上层 */
+        }
+
+        nav a:hover + .submenu {
+            display: block; /* 鼠标悬停时显示子菜单 */
+        }
+
+        .submenu a {
+            display: block; /* 使子菜单链接占满整个宽度 */
+            padding: 10px; /* 子菜单链接内边距 */
+        }
+
+        #container {
+            display: flex;
+            height: 100vh; /* 使容器高度占满视窗 */
+        }
+
+        #tree-container {
+            width: 25%; /* 调整树形控件的宽度 */
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto; /* 如果内容过多，添加滚动条 */
+        }
+
+        #graph-container {
+            width: 75%; /* 调整图表的宽度 */
+            padding: 10px;
+        }
+
+        #tree li {
+            list-style-type: none;
+        }
+
+        #tree span {
+            cursor: pointer;
+            display: block;
+            padding: 5px;
+            border: 1px solid #ccc;
+            margin: 2px;
+        }
+
+        button {
+            margin-top: 10px;
+            display: block;
+        }
+        #graph {
+            width: 100%;
+            height: 100%; /* Make sure the graph takes full height */
+        }
+    </style>
+
+</head>
+<body>
+    <nav>
+        <a href="/">首页</a>
+        <a href="/file">文件</a>
+        <a href="/algorithm">算法分析</a>
+        <a href="/datasets">经典数据集</a>
+        <a href="/about">关于</a>
+
+        <!-- 子菜单 -->
+        <div class="submenu">
+            <a href="/karate">karate数据集</a>
+            <a href="/dolphins">dolphins数据集</a>
+            <a href="/lesmis">lesmis数据集</a>
+            <a href="/celegansneural">celegansneural数据集</a>
+            <a href="/netscience">netscience数据集</a>
+        </div>
+    </nav>
+    <div id="container">
+        <div id="tree-container">
+            <ul id="tree">
+                        <li>
+                            <span>概念格</span>
+                            <ul>
+                                <li><span>等势概念</span>
+                                    <ul id="shell-lang">
+
+                                    </ul>
+                                </li>
+                                <li><span>非等势概念</span></li>
+                            </ul>
+                        </li>
+            </ul>
+            <button id="analyze-a">分析a</button>
+        </div>
+        <div id="graph-container">
+            <div id="graph"></div>
+            <div id="info1"></div>
+            <div id="info2"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const treeData = [
+            "12 26 49 56#12 26 49 56",
+                        "12 26 28 49 69 70 72#12 26 28 49 69 70 72",
+                        "12 24 28 32#12 24 28 32",
+                        "17 27 56#17 27 56",
+                        "26 49 69 70 72 76#26 49 69 70 72 76",
+                        "12 29 45#12 29 45",
+                        "1 8#1 8",
+                        "49 74 75#49 74 75",
+                        "47 48#47 48",
+                        "12 25 26 28 69 70 71#12 25 26 28 69 70 71",
+                        "48 49#48 49",
+                        "1 10#1 10",
+                        "42 56 58 63#42 56 58 63",
+                        "26 40 56#26 40 56",
+                        "12 27 28 44#12 27 28 44",
+                        "50 51#50 51",
+                        "12 30 35 36 37 38 39#12 30 35 36 37 38 39",
+                        "26 42 56#26 42 56",
+                        "12 15#12 15",
+                        "26 41#26 41",
+                        "12 33#12 33",
+                        "1 5#1 5",
+                        "17 18 19 20 21 22 23 24#17 18 19 20 21 22 23 24",
+                        "12 26 28 69 70 71 72#12 26 28 69 70 71 72",
+                        "52 53#52 53",
+                        "1 7#1 7",
+                        "12 26 27 56#12 26 27 56",
+                        "1 9#1 9",
+                        "50 56 57#50 56 57",
+                        "25 26 42 43#25 26 42 43",
+                        "49 56 58 59 60 62 63 64 65 66#49 56 58 59 60 62 63 64 65 66",
+                        "1 2#1 2",
+                        "12 25 26 27 28#12 25 26 27 28",
+                        "12 24 25 26 28#12 24 25 26 28",
+                        "12 14#12 14",
+                        "12 28 49 59#12 28 49 59",
+                        "12 27 28 73#12 27 28 73",
+                        "12 28 34#12 28 34",
+                        "25 51#25 51",
+                        "12 16#12 16",
+                        "58 68#58 68",
+                        "49 59 60 61 62 63 64 65 66 67#49 59 60 61 62 63 64 65 66 67",
+                        "25 26 42 69 70 71#25 26 42 69 70 71",
+                        "1 6#1 6",
+                        "1 3 4 12#1 3 4 12",
+                        "40 53#40 53",
+                        "26 42 69 70 71 72 76#26 42 69 70 71 72 76",
+                        "12 28 59 71#12 28 59 71",
+                        "52 54#52 54",
+                        "49 59 63 64 65 66 67 77#49 59 63 64 65 66 67 77",
+                        "12 28 29#12 28 29",
+                        "29 46#29 46",
+                        "12 13 24#12 13 24",
+                        "12 27 50 52 56#12 27 50 52 56",
+                        "12 49 56 59 65#12 49 56 59 65",
+                        "11 12#11 12",
+                        "27 50 52 55 56#27 50 52 55 56",
+                        "12 24 28 30#12 24 28 30",
+                        "24 31 32#24 31 32"
+        ];
+
+        const shellLangContainer = document.getElementById('shell-lang');
+        treeData.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${item}</span>`;
+            shellLangContainer.appendChild(li);
+        });
+
+        const graph = echarts.init(document.getElementById('graph'));
+
+        const nodes = [];
+        for (let i = 1; i <= 77; i++) {
+            nodes.push({ name: `结点${i}`, symbolSize: 70, category: 1 });
+        }
+
+        const links = [
+            {'source': '结点1', 'target': '结点0', 'value': '1'},
+                     {'source': '结点2', 'target': '结点0', 'value': '1'},
+                     {'source': '结点3', 'target': '结点0', 'value': '1'},
+                     {'source': '结点3', 'target': '结点2', 'value': '1'},
+                     {'source': '结点4', 'target': '结点0', 'value': '1'},
+                     {'source': '结点5', 'target': '结点0', 'value': '1'},
+                     {'source': '结点6', 'target': '结点0', 'value': '1'},
+                     {'source': '结点7', 'target': '结点0', 'value': '1'},
+                     {'source': '结点8', 'target': '结点0', 'value': '1'},
+                     {'source': '结点9', 'target': '结点0', 'value': '1'},
+                     {'source': '结点11', 'target': '结点10', 'value': '1'},
+                     {'source': '结点11', 'target': '结点3', 'value': '1'},
+                     {'source': '结点11', 'target': '结点2', 'value': '1'},
+                     {'source': '结点11', 'target': '结点0', 'value': '1'},
+                     {'source': '结点12', 'target': '结点11', 'value': '1'},
+                     {'source': '结点13', 'target': '结点11', 'value': '1'},
+                     {'source': '结点14', 'target': '结点11', 'value': '1'},
+                     {'source': '结点15', 'target': '结点11', 'value': '1'},
+                     {'source': '结点17', 'target': '结点16', 'value': '1'},
+                     {'source': '结点18', 'target': '结点16', 'value': '1'},
+                     {'source': '结点18', 'target': '结点17', 'value': '1'},
+                     {'source': '结点19', 'target': '结点16', 'value': '1'},
+                     {'source': '结点19', 'target': '结点17', 'value': '1'},
+                     {'source': '结点19', 'target': '结点18', 'value': '1'},
+                     {'source': '结点20', 'target': '结点16', 'value': '1'},
+                     {'source': '结点20', 'target': '结点17', 'value': '1'},
+                     {'source': '结点20', 'target': '结点18', 'value': '1'},
+                     {'source': '结点20', 'target': '结点19', 'value': '1'},
+                     {'source': '结点21', 'target': '结点16', 'value': '1'},
+                     {'source': '结点21', 'target': '结点17', 'value': '1'},
+                     {'source': '结点21', 'target': '结点18', 'value': '1'},
+                     {'source': '结点21', 'target': '结点19', 'value': '1'},
+                     {'source': '结点21', 'target': '结点20', 'value': '1'},
+                     {'source': '结点22', 'target': '结点16', 'value': '1'},
+                     {'source': '结点22', 'target': '结点17', 'value': '1'},
+                     {'source': '结点22', 'target': '结点18', 'value': '1'},
+                     {'source': '结点22', 'target': '结点19', 'value': '1'},
+                     {'source': '结点22', 'target': '结点20', 'value': '1'},
+                     {'source': '结点22', 'target': '结点21', 'value': '1'},
+                     {'source': '结点23', 'target': '结点16', 'value': '1'},
+                     {'source': '结点23', 'target': '结点17', 'value': '1'},
+                     {'source': '结点23', 'target': '结点18', 'value': '1'},
+                     {'source': '结点23', 'target': '结点19', 'value': '1'},
+                     {'source': '结点23', 'target': '结点20', 'value': '1'},
+                     {'source': '结点23', 'target': '结点21', 'value': '1'},
+                     {'source': '结点23', 'target': '结点22', 'value': '1'},
+                     {'source': '结点23', 'target': '结点12', 'value': '1'},
+                     {'source': '结点23', 'target': '结点11', 'value': '1'},
+                     {'source': '结点24', 'target': '结点23', 'value': '1'},
+                     {'source': '结点24', 'target': '结点11', 'value': '1'},
+                     {'source': '结点25', 'target': '结点24', 'value': '1'},
+                     {'source': '结点25', 'target': '结点23', 'value': '1'},
+                     {'source': '结点25', 'target': '结点11', 'value': '1'},
+                     {'source': '结点26', 'target': '结点24', 'value': '1'},
+                     {'source': '结点26', 'target': '结点11', 'value': '1'},
+                     {'source': '结点26', 'target': '结点16', 'value': '1'},
+                     {'source': '结点26', 'target': '结点25', 'value': '1'},
+                     {'source': '结点27', 'target': '结点11', 'value': '1'},
+                     {'source': '结点27', 'target': '结点23', 'value': '1'},
+                     {'source': '结点27', 'target': '结点25', 'value': '1'},
+                     {'source': '结点27', 'target': '结点24', 'value': '1'},
+                     {'source': '结点27', 'target': '结点26', 'value': '1'},
+                     {'source': '结点28', 'target': '结点11', 'value': '1'},
+                     {'source': '结点28', 'target': '结点27', 'value': '1'},
+                     {'source': '结点29', 'target': '结点23', 'value': '1'},
+                     {'source': '结点29', 'target': '结点27', 'value': '1'},
+                     {'source': '结点29', 'target': '结点11', 'value': '1'},
+                     {'source': '结点30', 'target': '结点23', 'value': '1'},
+                     {'source': '结点31', 'target': '结点30', 'value': '1'},
+                     {'source': '结点31', 'target': '结点11', 'value': '1'},
+                     {'source': '结点31', 'target': '结点23', 'value': '1'},
+                     {'source': '结点31', 'target': '结点27', 'value': '1'},
+                     {'source': '结点32', 'target': '结点11', 'value': '1'},
+                     {'source': '结点33', 'target': '结点11', 'value': '1'},
+                     {'source': '结点33', 'target': '结点27', 'value': '1'},
+                     {'source': '结点34', 'target': '结点11', 'value': '1'},
+                     {'source': '结点34', 'target': '结点29', 'value': '1'},
+                     {'source': '结点35', 'target': '结点11', 'value': '1'},
+                     {'source': '结点35', 'target': '结点34', 'value': '1'},
+                     {'source': '结点35', 'target': '结点29', 'value': '1'},
+                     {'source': '结点36', 'target': '结点34', 'value': '1'},
+                     {'source': '结点36', 'target': '结点35', 'value': '1'},
+                     {'source': '结点36', 'target': '结点11', 'value': '1'},
+                     {'source': '结点36', 'target': '结点29', 'value': '1'},
+                     {'source': '结点37', 'target': '结点34', 'value': '1'},
+                     {'source': '结点37', 'target': '结点35', 'value': '1'},
+                     {'source': '结点37', 'target': '结点36', 'value': '1'},
+                     {'source': '结点37', 'target': '结点11', 'value': '1'},
+                     {'source': '结点37', 'target': '结点29', 'value': '1'},
+                     {'source': '结点38', 'target': '结点34', 'value': '1'},
+                     {'source': '结点38', 'target': '结点35', 'value': '1'},
+                     {'source': '结点38', 'target': '结点36', 'value': '1'},
+                     {'source': '结点38', 'target': '结点37', 'value': '1'},
+                     {'source': '结点38', 'target': '结点11', 'value': '1'},
+                     {'source': '结点38', 'target': '结点29', 'value': '1'},
+                     {'source': '结点39', 'target': '结点25', 'value': '1'},
+                     {'source': '结点40', 'target': '结点25', 'value': '1'},
+                     {'source': '结点41', 'target': '结点24', 'value': '1'},
+                     {'source': '结点41', 'target': '结点25', 'value': '1'},
+                     {'source': '结点42', 'target': '结点41', 'value': '1'},
+                     {'source': '结点42', 'target': '结点25', 'value': '1'},
+                     {'source': '结点42', 'target': '结点24', 'value': '1'},
+                     {'source': '结点43', 'target': '结点11', 'value': '1'},
+                     {'source': '结点43', 'target': '结点26', 'value': '1'},
+                     {'source': '结点43', 'target': '结点27', 'value': '1'},
+                     {'source': '结点44', 'target': '结点28', 'value': '1'},
+                     {'source': '结点44', 'target': '结点11', 'value': '1'},
+                     {'source': '结点45', 'target': '结点28', 'value': '1'},
+                     {'source': '结点47', 'target': '结点46', 'value': '1'},
+                     {'source': '结点48', 'target': '结点47', 'value': '1'},
+                     {'source': '结点48', 'target': '结点25', 'value': '1'},
+                     {'source': '结点48', 'target': '结点27', 'value': '1'},
+                     {'source': '结点48', 'target': '结点11', 'value': '1'},
+                     {'source': '结点49', 'target': '结点26', 'value': '1'},
+                     {'source': '结点49', 'target': '结点11', 'value': '1'},
+                     {'source': '结点50', 'target': '结点49', 'value': '1'},
+                     {'source': '结点50', 'target': '结点24', 'value': '1'},
+                     {'source': '结点51', 'target': '结点49', 'value': '1'},
+                     {'source': '结点51', 'target': '结点26', 'value': '1'},
+                     {'source': '结点51', 'target': '结点11', 'value': '1'},
+                     {'source': '结点52', 'target': '结点51', 'value': '1'},
+                     {'source': '结点52', 'target': '结点39', 'value': '1'},
+                     {'source': '结点53', 'target': '结点51', 'value': '1'},
+                     {'source': '结点54', 'target': '结点51', 'value': '1'},
+                     {'source': '结点54', 'target': '结点49', 'value': '1'},
+                     {'source': '结点54', 'target': '结点26', 'value': '1'},
+                     {'source': '结点55', 'target': '结点51', 'value': '1'},
+                     {'source': '结点55', 'target': '结点49', 'value': '1'},
+                     {'source': '结点55', 'target': '结点39', 'value': '1'},
+                     {'source': '结点55', 'target': '结点54', 'value': '1'},
+                     {'source': '结点55', 'target': '结点26', 'value': '1'},
+                     {'source': '结点55', 'target': '结点11', 'value': '1'},
+                     {'source': '结点55', 'target': '结点16', 'value': '1'},
+                     {'source': '结点55', 'target': '结点25', 'value': '1'},
+                     {'source': '结点55', 'target': '结点41', 'value': '1'},
+                     {'source': '结点55', 'target': '结点48', 'value': '1'},
+                     {'source': '结点56', 'target': '结点49', 'value': '1'},
+                     {'source': '结点56', 'target': '结点55', 'value': '1'},
+                     {'source': '结点57', 'target': '结点55', 'value': '1'},
+                     {'source': '结点57', 'target': '结点41', 'value': '1'},
+                     {'source': '结点57', 'target': '结点48', 'value': '1'},
+                     {'source': '结点58', 'target': '结点55', 'value': '1'},
+                     {'source': '结点58', 'target': '结点48', 'value': '1'},
+                     {'source': '结点58', 'target': '结点27', 'value': '1'},
+                     {'source': '结点58', 'target': '结点57', 'value': '1'},
+                     {'source': '结点58', 'target': '结点11', 'value': '1'},
+                     {'source': '结点59', 'target': '结点58', 'value': '1'},
+                     {'source': '结点59', 'target': '结点55', 'value': '1'},
+                     {'source': '结点59', 'target': '结点48', 'value': '1'},
+                     {'source': '结点59', 'target': '结点57', 'value': '1'},
+                     {'source': '结点60', 'target': '结点48', 'value': '1'},
+                     {'source': '结点60', 'target': '结点58', 'value': '1'},
+                     {'source': '结点60', 'target': '结点59', 'value': '1'},
+                     {'source': '结点61', 'target': '结点48', 'value': '1'},
+                     {'source': '结点61', 'target': '结点58', 'value': '1'},
+                     {'source': '结点61', 'target': '结点60', 'value': '1'},
+                     {'source': '结点61', 'target': '结点59', 'value': '1'},
+                     {'source': '结点61', 'target': '结点57', 'value': '1'},
+                     {'source': '结点61', 'target': '结点55', 'value': '1'},
+                     {'source': '结点62', 'target': '结点55', 'value': '1'},
+                     {'source': '结点62', 'target': '结点58', 'value': '1'},
+                     {'source': '结点62', 'target': '结点59', 'value': '1'},
+                     {'source': '结点62', 'target': '结点48', 'value': '1'},
+                     {'source': '结点62', 'target': '结点57', 'value': '1'},
+                     {'source': '结点62', 'target': '结点41', 'value': '1'},
+                     {'source': '结点62', 'target': '结点61', 'value': '1'},
+                     {'source': '结点62', 'target': '结点60', 'value': '1'},
+                     {'source': '结点63', 'target': '结点59', 'value': '1'},
+                     {'source': '结点63', 'target': '结点48', 'value': '1'},
+                     {'source': '结点63', 'target': '结点62', 'value': '1'},
+                     {'source': '结点63', 'target': '结点57', 'value': '1'},
+                     {'source': '结点63', 'target': '结点58', 'value': '1'},
+                     {'source': '结点63', 'target': '结点61', 'value': '1'},
+                     {'source': '结点63', 'target': '结点60', 'value': '1'},
+                     {'source': '结点63', 'target': '结点55', 'value': '1'},
+                     {'source': '结点64', 'target': '结点55', 'value': '1'},
+                     {'source': '结点64', 'target': '结点62', 'value': '1'},
+                     {'source': '结点64', 'target': '结点48', 'value': '1'},
+                     {'source': '结点64', 'target': '结点63', 'value': '1'},
+                     {'source': '结点64', 'target': '结点58', 'value': '1'},
+                     {'source': '结点64', 'target': '结点61', 'value': '1'},
+                     {'source': '结点64', 'target': '结点60', 'value': '1'},
+                     {'source': '结点64', 'target': '结点59', 'value': '1'},
+                     {'source': '结点64', 'target': '结点57', 'value': '1'},
+                     {'source': '结点64', 'target': '结点11', 'value': '1'},
+                     {'source': '结点65', 'target': '结点63', 'value': '1'},
+                     {'source': '结点65', 'target': '结点64', 'value': '1'},
+                     {'source': '结点65', 'target': '结点48', 'value': '1'},
+                     {'source': '结点65', 'target': '结点62', 'value': '1'},
+                     {'source': '结点65', 'target': '结点58', 'value': '1'},
+                     {'source': '结点65', 'target': '结点61', 'value': '1'},
+                     {'source': '结点65', 'target': '结点60', 'value': '1'},
+                     {'source': '结点65', 'target': '结点59', 'value': '1'},
+                     {'source': '结点65', 'target': '结点57', 'value': '1'},
+                     {'source': '结点65', 'target': '结点55', 'value': '1'},
+                     {'source': '结点66', 'target': '结点64', 'value': '1'},
+                     {'source': '结点66', 'target': '结点58', 'value': '1'},
+                     {'source': '结点66', 'target': '结点59', 'value': '1'},
+                     {'source': '结点66', 'target': '结点62', 'value': '1'},
+                     {'source': '结点66', 'target': '结点65', 'value': '1'},
+                     {'source': '结点66', 'target': '结点48', 'value': '1'},
+                     {'source': '结点66', 'target': '结点63', 'value': '1'},
+                     {'source': '结点66', 'target': '结点61', 'value': '1'},
+                     {'source': '结点66', 'target': '结点60', 'value': '1'},
+                     {'source': '结点67', 'target': '结点57', 'value': '1'},
+                     {'source': '结点68', 'target': '结点25', 'value': '1'},
+                     {'source': '结点68', 'target': '结点11', 'value': '1'},
+                     {'source': '结点68', 'target': '结点24', 'value': '1'},
+                     {'source': '结点68', 'target': '结点27', 'value': '1'},
+                     {'source': '结点68', 'target': '结点48', 'value': '1'},
+                     {'source': '结点68', 'target': '结点41', 'value': '1'},
+                     {'source': '结点69', 'target': '结点25', 'value': '1'},
+                     {'source': '结点69', 'target': '结点68', 'value': '1'},
+                     {'source': '结点69', 'target': '结点11', 'value': '1'},
+                     {'source': '结点69', 'target': '结点24', 'value': '1'},
+                     {'source': '结点69', 'target': '结点27', 'value': '1'},
+                     {'source': '结点69', 'target': '结点48', 'value': '1'},
+                     {'source': '结点69', 'target': '结点41', 'value': '1'},
+                     {'source': '结点70', 'target': '结点25', 'value': '1'},
+                     {'source': '结点70', 'target': '结点69', 'value': '1'},
+                     {'source': '结点70', 'target': '结点68', 'value': '1'},
+                     {'source': '结点70', 'target': '结点11', 'value': '1'},
+                     {'source': '结点70', 'target': '结点24', 'value': '1'},
+                     {'source': '结点70', 'target': '结点27', 'value': '1'},
+                     {'source': '结点70', 'target': '结点41', 'value': '1'},
+                     {'source': '结点70', 'target': '结点58', 'value': '1'},
+                     {'source': '结点71', 'target': '结点27', 'value': '1'},
+                     {'source': '结点71', 'target': '结点69', 'value': '1'},
+                     {'source': '结点71', 'target': '结点68', 'value': '1'},
+                     {'source': '结点71', 'target': '结点70', 'value': '1'},
+                     {'source': '结点71', 'target': '结点11', 'value': '1'},
+                     {'source': '结点71', 'target': '结点48', 'value': '1'},
+                     {'source': '结点71', 'target': '结点41', 'value': '1'},
+                     {'source': '结点71', 'target': '结点25', 'value': '1'},
+                     {'source': '结点72', 'target': '结点26', 'value': '1'},
+                     {'source': '结点72', 'target': '结点27', 'value': '1'},
+                     {'source': '结点72', 'target': '结点11', 'value': '1'},
+                     {'source': '结点73', 'target': '结点48', 'value': '1'},
+                     {'source': '结点74', 'target': '结点48', 'value': '1'},
+                     {'source': '结点74', 'target': '结点73', 'value': '1'},
+                     {'source': '结点75', 'target': '结点69', 'value': '1'},
+                     {'source': '结点75', 'target': '结点68', 'value': '1'},
+                     {'source': '结点75', 'target': '结点25', 'value': '1'},
+                     {'source': '结点75', 'target': '结点48', 'value': '1'},
+                     {'source': '结点75', 'target': '结点41', 'value': '1'},
+                     {'source': '结点75', 'target': '结点70', 'value': '1'},
+                     {'source': '结点75', 'target': '结点71', 'value': '1'},
+                     {'source': '结点76', 'target': '结点64', 'value': '1'},
+                     {'source': '结点76', 'target': '结点65', 'value': '1'},
+                     {'source': '结点76', 'target': '结点66', 'value': '1'},
+                     {'source': '结点76', 'target': '结点63', 'value': '1'},
+                     {'source': '结点76', 'target': '结点62', 'value': '1'},
+                     {'source': '结点76', 'target': '结点48', 'value': '1'},
+                     {'source': '结点76', 'target': '结点58', 'value': '1'}
+        ];
+
+        const categories = [
+            { name: '等势结点', symbol: 'circle', itemStyle: { normal: { color: 'rgb(255,0,0)' } } },
+            { name: '未选中结点', symbol: 'circle', itemStyle: { normal: { color: 'rgb(0,0,255)' } } }
+        ];
+
+        const option = {
+            title: {
+                text: '社交网络分析'
+            },
+            tooltip: {},
+            legend: [{
+                data: categories.map(a => a.name)
+            }],
+            series: [{
+                name: 'Concept Lattice',
+                type: 'graph',
+                layout: 'force',
+                data: nodes,
+                links: links,
+                categories: categories,
+                roam: true,
+                label: {
+                    show: true,
+                    position: 'right'
+                },
+                force: {
+                    repulsion: 4000
+                },
+                edgeLabel: {
+                    show: true,
+                    formatter: '{c}'
+                }
+            }]
+        };
+
+        graph.setOption(option);
+    });
+    </script>
+
+</body>
+</html>

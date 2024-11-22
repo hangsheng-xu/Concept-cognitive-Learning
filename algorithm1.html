@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: relative;
+        }
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block; /* Make links appear in one line */
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .submenu {
+            position: absolute; /* Absolute positioning */
+            background-color: #444; /* Submenu background color */
+            min-width: 160px; /* Submenu width */
+            z-index: 1; /* Ensure submenu is on top */
+            display: none; /* Hide submenu by default */
+        }
+        nav a:hover + .submenu {
+            display: block; /* Show submenu on hover */
+        }
+        .submenu a {
+            display: block; /* Make submenu links fill the width */
+            padding: 10px; /* Submenu link padding */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/index1">Home</a>
+        <a href="/file1">Files</a>
+        <a href="/algorithm1">Algorithm Analysis</a>
+        <!-- Submenu -->
+        <div class="submenu">
+            <a href="/concept_lattice1">Generate Concept Lattice</a>
+            <a href="/iceberg1">Generate Iceberg Equivalence Concepts</a>
+            <a href="/credible1">Generate Credible Clique Structure</a>
+            <a href="/top_k1">Generate Top-k Maximal Clique</a>
+            <a href="/fuzzy1">Generate Fuzzy Concept Lattice</a>
+            <a href="/fairness1">Fairness Analysis</a>
+        </div>
+        <a href="/function1">Functions</a>
+        <a href="/datasets1">Classic Datasets</a>
+        <a href="/about1">About</a>
+    </nav>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: fixed; /* 固定在顶部 */
+            top: 0; /* 距离顶部为0 */
+            left: 0; /* 距离左边为0 */
+            width: 100%; /* 使菜单宽度为100% */
+            z-index: 1000; /* 确保菜单在其他元素之上 */
+            text-align: left; /* 左对齐 */
+        }
+
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .submenu {
+            position: absolute; /* 绝对定位 */
+            background-color: #444; /* 子菜单背景颜色 */
+            min-width: 160px; /* 子菜单宽度 */
+            z-index: 1; /* 确保子菜单在其他元素之上 */
+        }
+        .submenu a {
+            display: block; /* 子菜单链接为块级元素 */
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        td {
+            cursor: pointer;
+        }
+        td:hover {
+            background-color: #f0f0f0;
+        }
+        .button-container {
+    display: flex; /* 使用 Flexbox */
+    justify-content: center; /* 水平居中对齐 */
+    margin-top: 150px; /* 添加顶部间距 */
+}
+
+        .button-container button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script>
+        let currentMatrix = []; // 用于存储当前矩阵
+        let attributes = []; // 用于存储属性
+
+        function showPrompt() {
+            var vertexCount = prompt("输入顶点个数（整数）", "5");
+            if (vertexCount !== null && !isNaN(vertexCount) && vertexCount > 0) {
+                vertexCount = parseInt(vertexCount);
+                createMatrix(vertexCount);
+            }
+        }
+
+        function createMatrix(size) {
+            const matrixContainer = document.getElementById('matrixContainer');
+            matrixContainer.innerHTML = '';
+
+            const table = document.createElement('table');
+            currentMatrix = [];
+
+            const headerRow = document.createElement('tr');
+            const emptyHeader = document.createElement('th');
+            headerRow.appendChild(emptyHeader);
+            for (let i = 0; i < size; i++) {
+                const th = document.createElement('th');
+                th.textContent = i + 1;
+                headerRow.appendChild(th);
+            }
+            table.appendChild(headerRow);
+
+            for (let i = 0; i < size; i++) {
+                const row = document.createElement('tr');
+                const rowData = [];
+
+                const rowHeader = document.createElement('th');
+                rowHeader.textContent = i + 1;
+                row.appendChild(rowHeader);
+
+                for (let j = 0; j < size; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = (i === j) ? 1 : 0;
+                    rowData.push(cell.textContent);
+                    cell.onclick = function() {
+                        toggleCell(i, j, cell);
+                    };
+                    row.appendChild(cell);
+                }
+                currentMatrix.push(rowData);
+                table.appendChild(row);
+            }
+
+            matrixContainer.appendChild(table);
+        }
+
+        function toggleCell(i, j, cell) {
+            const currentValue = parseInt(cell.textContent);
+            const newValue = 1 - currentValue;
+            cell.textContent = newValue;
+            currentMatrix[i][j] = newValue;
+
+            const symmetricCell = document.querySelector(`tr:nth-child(${j + 2}) td:nth-child(${i + 2})`);
+            if (symmetricCell) {
+                symmetricCell.textContent = newValue;
+                currentMatrix[j][i] = newValue;
+            }
+        }
+
+        function saveMatrix() {
+            const workbook = XLSX.utils.book_new();
+            const worksheetData = [];
+
+            // 添加标题行
+            const headerRow = [''];
+            for (let i = 0; i < currentMatrix.length; i++) {
+                headerRow.push(i + 1);
+            }
+            // 添加属性标题
+            attributes.forEach(attr => {
+                headerRow.push(attr.name);
+            });
+            worksheetData.push(headerRow);
+
+            // 添加数据行
+            currentMatrix.forEach((rowData, index) => {
+                const rowArray = [index + 1].concat(rowData);
+                // 添加属性值
+                attributes.forEach(attr => {
+                    const attrCell = document.querySelector(`#matrixContainer table tr:nth-child(${index + 2}) td:last-child`);
+                    rowArray.push(attrCell ? attrCell.textContent : '');
+                });
+                worksheetData.push(rowArray);
+            });
+
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Matrix");
+
+            XLSX.writeFile(workbook, 'matrix.xlsx');
+        }
+
+        function openFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx, .xls';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    createMatrixFromData(json);
+                };
+                reader.readAsArrayBuffer(file);
+            };
+            input.click();
+        }
+
+        function createMatrixFromData(data) {
+            const matrixContainer = document.getElementById('matrixContainer');
+            matrixContainer.innerHTML = '';
+
+            const table = document.createElement('table');
+            currentMatrix = [];
+
+            data.shift(); // 移除标题行
+
+            data.forEach((rowArray, rowIndex) => {
+                const row = document.createElement('tr');
+                const rowData = [];
+
+                rowArray.shift(); // 移除行号
+
+                const rowHeader = document.createElement('th');
+                rowHeader.textContent = rowIndex + 1;
+                row.appendChild(rowHeader);
+
+                rowArray.forEach((cellValue, cellIndex) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellValue;
+                    rowData.push(cellValue);
+                    cell.onclick = function() {
+                        toggleCell(rowIndex, cellIndex, cell);
+                    };
+                    row.appendChild(cell);
+                });
+
+                currentMatrix.push(rowData);
+                table.appendChild(row);
+            });
+
+            const headerRow = document.createElement('tr');
+            const emptyHeader = document.createElement('th');
+            headerRow.appendChild(emptyHeader);
+            for (let i = 0; i < currentMatrix.length; i++) {
+                const th = document.createElement('th');
+                th.textContent = i + 1;
+                headerRow.appendChild(th);
+            }
+            table.insertBefore(headerRow, table.firstChild);
+
+            matrixContainer.appendChild(table);
+        }
+
+        function addNodes() {
+            var nodeCount = prompt("输入增加节点个数（整数）", "1");
+            if (nodeCount !== null && !isNaN(nodeCount) && nodeCount > 0) {
+                nodeCount = parseInt(nodeCount);
+                const newSize = currentMatrix.length + nodeCount;
+                const newMatrix = [];
+
+                for (let i = 0; i < newSize; i++) {
+                    const row = [];
+                    for (let j = 0; j < newSize; j++) {
+                        if (i < currentMatrix.length && j < currentMatrix.length) {
+                            row.push(currentMatrix[i][j]);
+                        } else {
+                            row.push(0);
+                        }
+                    }
+                    newMatrix.push(row);
+                }
+
+                currentMatrix = newMatrix;
+                createMatrix(newSize);
+            }
+        }
+
+        function removeNodes() {
+            var nodeCount = prompt("输入减少节点个数（整数）", "1");
+            if (nodeCount !== null && !isNaN(nodeCount) && nodeCount > 0) {
+                nodeCount = parseInt(nodeCount);
+                const newSize = Math.max(currentMatrix.length - nodeCount, 1); // 确保至少有1个节点
+                currentMatrix = currentMatrix.slice(0, newSize).map(row => row.slice(0, newSize));
+                createMatrix(newSize);
+            }
+        }
+
+        function addAttribute() {
+            const attributeName = prompt("输入属性名称", "");
+            if (attributeName) {
+                const classCount = prompt("输入属性类数（整数）", "1");
+                if (classCount !== null && !isNaN(classCount) && classCount > 0) {
+                    const parsedClassCount = parseInt(classCount);
+                    const classes = [];
+                    for (let i = 0; i < parsedClassCount; i++) {
+                        const className = prompt(`输入属性分类 ${i + 1}`, "");
+                        if (className) {
+                            classes.push(className);
+                        }
+                    }
+                    attributes.push({ name: attributeName, classes: classes });
+                    addAttributeColumn(attributeName, classes);
+                }
+            }
+        }
+
+        function addAttributeColumn(attributeName, classes) {
+            const matrixContainer = document.getElementById('matrixContainer');
+            const table = matrixContainer.querySelector('table');
+
+            // 添加属性列标题
+            const headerRow = table.querySelector('tr');
+            const attributeHeader = document.createElement('th');
+            attributeHeader.textContent = attributeName;
+            headerRow.appendChild(attributeHeader);
+
+            // 添加属性列的单元格
+            for (let i = 1; i < table.rows.length; i++) {
+                const cell = document.createElement('td');
+                cell.textContent = classes[0]; // 默认值为第一个类别
+                cell.onclick = function() {
+                    toggleAttributeCell(cell, classes);
+                };
+                table.rows[i].appendChild(cell);
+            }
+        }
+
+        function toggleAttributeCell(cell, classes) {
+            const currentValue = cell.textContent;
+            const currentIndex = classes.indexOf(currentValue);
+            const newIndex = (currentIndex + 1) % classes.length; // 循环切换
+            cell.textContent = classes[newIndex];
+        }
+
+        function toggleSubmenu(event, submenuId, showImmediately = false) {
+    event.preventDefault(); // 阻止默认行为
+    const submenus = document.querySelectorAll('.submenu');
+
+    submenus.forEach(submenu => {
+        if (submenu.id === submenuId) {
+            if (showImmediately) {
+                submenu.style.display = 'block'; // 立即显示子菜单
+            } else {
+                submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+            }
+        } else {
+            submenu.style.display = 'none'; // 隐藏其他子菜单
+        }
+    });
+}
+
+// 点击页面其他地方时隐藏子菜单
+document.addEventListener('click', function(event) {
+    const submenus = document.querySelectorAll('.submenu');
+    submenus.forEach(submenu => {
+        if (!submenu.contains(event.target) && !event.target.closest('.submenu-link')) {
+            submenu.style.display = 'none';
+        }
+    });
+});
+
+
+
+        // 获取当前矩阵数据
+        function getCurrentMatrix() {
+            // 假设矩阵存储在 currentMatrix 变量中
+            return currentMatrix;
+        }
+
+        // 跳转到生成概念格页面并传递矩阵数据
+        function generateConceptLattice() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/concept_lattice';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generateiceberg() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/iceberg';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generatecredible() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/credible';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generatetop_k() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/top_k';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generatefuzzy() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/fuzzy';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function generatefairness() {
+            const matrix = getCurrentMatrix();
+            const matrixData = JSON.stringify(matrix);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/fairness';
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'matrix';
+            input.value = matrixData;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+</head>
+<body onload="toggleSubmenu(event, 'fileSubmenu', true)">
+
+    <nav>
+        <a href="/">首页</a>
+        <a href="/file" class="submenu-link" onclick="toggleSubmenu(event, 'fileSubmenu', true)">文件</a>
+        <div id="fileSubmenu" class="submenu">
+            <a href="#" onclick="showPrompt()">新建</a>
+            <a href="#" onclick="saveMatrix()">保存</a>
+            <a href="#" onclick="openFile()">打开</a>
+        </div>
+        <a href="#" class="submenu-link" onclick="toggleSubmenu(event, 'algorithmSubmenu', false)">算法分析</a>
+        <div id="algorithmSubmenu" class="submenu">
+            <a href="#" onclick="generateConceptLattice()">生成概念格</a>
+            <a href="#" onclick="generateiceberg()">生成冰山等势概念</a>
+            <a href="#" onclick="generatecredible()">生成可信团结构</a>
+            <a href="#" onclick="generatetop_k()">生成Top-k极大团</a>
+            <a href="#" onclick="generatefuzzy()">生成模糊概念格</a>
+            <a href="#" onclick="generatefairness()">生成公平概念格</a>
+        </div>
+        <a href="/datasets">经典数据集</a>
+        <a href="/about">关于</a>
+    </nav>
+
+    <div class="button-container">
+        <button onclick="addNodes()">增加结点</button>
+        <button onclick="removeNodes()">减少结点</button>
+        <button onclick="addAttribute()">增加属性</button>
+    </div>
+
+    <div id="matrixContainer"></div>
+</body>
+</html>

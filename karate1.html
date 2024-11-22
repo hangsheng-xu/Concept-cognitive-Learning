@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>karate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            position: relative;
+        }
+
+        nav a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            background-color: #444;
+            min-width: 160px;
+            z-index: 1;
+        }
+
+        nav a:hover + .submenu {
+            display: block;
+        }
+
+        .submenu a {
+            display: block;
+            padding: 10px;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #tree-container {
+            width: 25%;
+            padding: 10px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+        }
+
+        #graph-container {
+            width: 75%; /* Adjusted width for better layout */
+            padding: 10px;
+            overflow: hidden; /* Prevent overflow */
+        }
+
+        #tree li {
+            list-style-type: none;
+        }
+
+        #tree span {
+            cursor: pointer;
+            display: block;
+            padding: 5px;
+            border: 1px solid #ccc;
+            margin: 2px;
+        }
+
+        button {
+            margin-top: 10px;
+            display: block;
+        }
+
+        /* Add some styling for the graph */
+        #graph {
+            width: 100%;
+            height: 100%; /* Make sure the graph takes full height */
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/index1">Home</a>
+        <a href="/file1">File</a>
+        <a href="/algorithm1">Algorithm Analysis</a>
+        <a href="/datasets1">Classic Datasets</a>
+        <a href="/about1">About</a>
+
+        <!-- Submenu -->
+        <div class="submenu">
+            <a href="/karate1">Karate Dataset</a>
+            <a href="/dolphins1">Dolphins Dataset</a>
+            <a href="/lesmis1">Les Mis Dataset</a>
+            <a href="/celegansneural1">Celegans Neural Dataset</a>
+            <a href="/netscience1">Net Science Dataset</a>
+        </div>
+    </nav>
+    <div id="container">
+        <div id="tree-container">
+            <ul id="tree">
+                <li>
+                    <span>Concept Lattice</span>
+                    <ul>
+                        <li><span>Equivalence Concepts</span>
+                            <ul id="shell-lang">
+
+                            </ul>
+                        </li>
+                        <li><span>Non-equivalence Concepts</span></li>
+                    </ul>
+                </li>
+            </ul>
+            <button id="analyze-a">Analyze a</button>
+        </div>
+        <div id="graph-container">
+            <div id="graph"></div>
+            <div id="info1"></div>
+            <div id="info2"></div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const treeData = [
+                "10 34#10 34", "1 5 7#1 5 7", "19 33 34#19 33 34", "16 33 34#16 33 34",
+                "1 3 9#1 3 9", "1 2 20#1 2 20", "24 26#24 26", "6 7 17#6 7 17",
+                "1 2 22#1 2 22", "32 33 34#32 33 34", "1 5 11#1 5 11", "3 10#3 10",
+                "3 28#3 28", "1 12#1 12", "29 32 34#29 32 34", "3 9 33#3 9 33",
+                "1 32#1 32", "2 31#2 31", "1 6 7#1 6 7", "27 30 34#27 30 34",
+                "9 31 33 34#9 31 33 34", "15 33 34#15 33 34", "25 28#25 28",
+                "25 26 32#25 26 32", "1 6 11#1 6 11", "1 2 3 4 8#1 2 3 4 8",
+                "1 4 13#1 4 13", "1 2 18#1 2 18", "14 34#14 34", "1 2 3 4 14#1 2 3 4 14",
+                "20 34#20 34", "23 33 34#23 33 34", "24 28 34#24 28 34",
+                "21 33 34#21 33 34", "3 29#3 29", "24 30 33 34#24 30 33 34"
+            ];
+
+            const shellLangContainer = document.getElementById('shell-lang');
+            treeData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${item}</span>`;
+                shellLangContainer.appendChild(li);
+            });
+
+            const graph = echarts.init(document.getElementById('graph'));
+
+            const nodes = [];
+            for (let i = 1; i <= 34; i++) {
+                nodes.push({ name: `Node${i}`, symbolSize: 70, category: 1 });
+            }
+
+            const links = [
+            {'source': 'Node1', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node4',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node5',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node6',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node7',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node8',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node9',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node11',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node12',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node13',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node14',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node18',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node20',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node22',"value":"1"},
+                 {'source': 'Node1', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node4',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node8',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node14',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node18',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node20',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node22',"value":"1"},
+                 {'source': 'Node2', 'target': 'Node31',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node4,"value":"1"'},
+                 {'source': 'Node3', 'target': 'Node8',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node9',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node10',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node14',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node28',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node29',"value":"1"},
+                 {'source': 'Node3', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node4',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node8',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node13',"value":"1"},
+                 {'source': 'Node4', 'target': 'Node14',"value":"1"},
+                 {'source': 'Node5', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node5', 'target': 'Node5,"value":"1"'},
+                 {'source': 'Node5', 'target': 'Node7',"value":"1"},
+                 {'source': 'Node5', 'target': 'Node11',"value":"1"},
+                 {'source': 'Node6', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node6', 'target': 'Node6',"value":"1"},
+                 {'source': 'Node6', 'target': 'Node7',"value":"1"},
+                 {'source': 'Node6', 'target': 'Node11',"value":"1"},
+                 {'source': 'Node6', 'target': 'Node17',"value":"1"},
+                 {'source': 'Node7', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node7', 'target': 'Node5',"value":"1"},
+                 {'source': 'Node7', 'target': 'Node6',"value":"1"},
+                 {'source': 'Node7', 'target': 'Node7',"value":"1"},
+                 {'source': 'Node7', 'target': 'Node17',"value":"1"},
+                 {'source': 'Node8', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node8', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node8', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node8', 'target': 'Node4',"value":"1"},
+                 {'source': 'Node8', 'target': 'Node8,"value":"1"'},
+                 {'source': 'Node9', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node9', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node9', 'target': 'Node9',"value":"1"},
+                 {'source': 'Node9', 'target': 'Node31',"value":"1"},
+                 {'source': 'Node9', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node9', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node10', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node10', 'target': 'Node10',"value":"1"},
+                 {'source': 'Node10', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node11', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node11', 'target': 'Node5',"value":"1"},
+                 {'source': 'Node11', 'target': 'Node6',"value":"1"},
+                 {'source': 'Node11', 'target': 'Node11',"value":"1"},
+                 {'source': 'Node12', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node12', 'target': 'Node12',"value":"1"},
+                 {'source': 'Node13', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node13', 'target': 'Node4',"value":"1"},
+                 {'source': 'Node13', 'target': 'Node13',"value":"1"},
+                 {'source': 'Node14', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node14', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node14', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node14', 'target': 'Node4',"value":"1"},
+                 {'source': 'Node14', 'target': 'Node14',"value":"1"},
+                 {'source': 'Node14', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node15', 'target': 'Node15',"value":"1"},
+                 {'source': 'Node15', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node15', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node16', 'target': 'Node16',"value":"1"},
+                 {'source': 'Node16', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node16', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node17', 'target': 'Node6',"value":"1"},
+                 {'source': 'Node17', 'target': 'Node7',"value":"1"},
+                 {'source': 'Node17', 'target': 'Node17',"value":"1"},
+                 {'source': 'Node18', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node18', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node18', 'target': 'Node18',"value":"1"},
+                 {'source': 'Node19', 'target': 'Node19',"value":"1"},
+                 {'source': 'Node19', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node19', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node20', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node20', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node20', 'target': 'Node20',"value":"1"},
+                 {'source': 'Node20', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node21', 'target': 'Node21',"value":"1"},
+                 {'source': 'Node21', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node21', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node22', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node22', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node22', 'target': 'Node22',"value":"1"},
+                 {'source': 'Node23', 'target': 'Node23',"value":"1"},
+                 {'source': 'Node23', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node23', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node24', 'target': 'Node24',"value":"1"},
+                 {'source': 'Node24', 'target': 'Node26',"value":"1"},
+                 {'source': 'Node24', 'target': 'Node28',"value":"1"},
+                 {'source': 'Node24', 'target': 'Node30',"value":"1"},
+                 {'source': 'Node24', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node24', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node25', 'target': 'Node25',"value":"1"},
+                 {'source': 'Node25', 'target': 'Node26',"value":"1"},
+                 {'source': 'Node25', 'target': 'Node28',"value":"1"},
+                 {'source': 'Node25', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node26', 'target': 'Node24',"value":"1"},
+                 {'source': 'Node26', 'target': 'Node25',"value":"1"},
+                 {'source': 'Node26', 'target': 'Node26',"value":"1"},
+                 {'source': 'Node26', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node27', 'target': 'Node27',"value":"1"},
+                 {'source': 'Node27', 'target': 'Node30',"value":"1"},
+                 {'source': 'Node27', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node28', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node28', 'target': 'Node24',"value":"1"},
+                 {'source': 'Node28', 'target': 'Node25',"value":"1"},
+                 {'source': 'Node28', 'target': 'Node28',"value":"1"},
+                 {'source': 'Node28', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node29', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node29', 'target': 'Node29',"value":"1"},
+                 {'source': 'Node29', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node29', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node30', 'target': 'Node24',"value":"1"},
+                 {'source': 'Node30', 'target': 'Node27',"value":"1"},
+                 {'source': 'Node30', 'target': 'Node30',"value":"1"},
+                 {'source': 'Node30', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node30', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node31', 'target': 'Node2',"value":"1"},
+                 {'source': 'Node31', 'target': 'Node9',"value":"1"},
+                 {'source': 'Node31', 'target': 'Node31',"value":"1"},
+                 {'source': 'Node31', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node31', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node1',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node25',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node26',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node29',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node32', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node3',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node9',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node15',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node16',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node19',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node21',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node23',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node24',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node30',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node31',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node33', 'target': 'Node34',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node9',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node10',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node14',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node15',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node16',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node19',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node20',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node21',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node23',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node24',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node27',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node28',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node29',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node30',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node31',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node32',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node33',"value":"1"},
+                 {'source': 'Node34', 'target': 'Node34',"value":"1"}
+        ];
+
+
+            const categories = [
+                { name: 'Equivalence Nodes', symbol: 'circle', itemStyle: { normal: { color: 'rgb(255,0,0)' } } },
+                { name: 'Unselected Nodes', symbol: 'circle', itemStyle: { normal: { color: 'rgb(0,0,255)' } } }
+            ];
+
+            const option = {
+                title: {
+                    text: 'Social Network Analysis'
+                },
+                tooltip: {},
+                legend: [{
+                    data: categories.map(a => a.name)
+                }],
+                series: [{
+                    name: 'Concept Lattice',
+                    type: 'graph',
+                    layout: 'force',
+                    data: nodes,
+                    links: links,
+                    categories: categories,
+                    roam: true,
+                    label: {
+                        show: true,
+                        position: 'right'
+                    },
+                    force: {
+                        repulsion: 4000
+                    },
+                    edgeLabel: {
+                        show: true,
+                        formatter: '{c}'
+                    }
+                }]
+            };
+
+            graph.setOption(option);
+        });
+    </script>
+</body>
+</html>
