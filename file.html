@@ -355,19 +355,35 @@ document.addEventListener('click', function(event) {
 
         // 跳转到生成概念格页面并传递矩阵数据
         function generateConceptLattice() {
-        const matrix = getCurrentMatrix();
-        const matrixData = JSON.stringify(matrix);
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/concept_lattice';
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'matrix';
-        input.value = matrixData;
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-    }
+    const matrix = getCurrentMatrix();
+    const matrixData = JSON.stringify(matrix);
+
+    // 替换为你的 API URL
+    const apiUrl = 'https://hangsheng-xu.github.io/Concept-cognitive-Learning/concept_lattice';
+
+    fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: matrixData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json(); // 假设 API 返回 JSON
+    })
+    .then(data => {
+        console.log('Success:', data);
+        // 在这里处理成功响应
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        // 在这里处理错误
+    });
+}
+
 
 
         function generateiceberg() {
