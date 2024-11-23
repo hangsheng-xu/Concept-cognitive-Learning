@@ -322,11 +322,12 @@ set2.forEach(item => {
         }
 
     window.onload = function() {
-            const matrixData = {{ matrix|tojson | safe }}; // 将矩阵数据传递给 JavaScript
+            const matrixData = localStorage.getItem('matrixData');
             if (matrixData) {
-                    const matrix = matrixData;
-                    console.log(matrix);
-                    processMatrix(matrix);
+                const matrix = JSON.parse(matrixData);
+                processMatrix(matrix);
+            } else {
+                alert('没有找到矩阵数据');
             }
         };
 
