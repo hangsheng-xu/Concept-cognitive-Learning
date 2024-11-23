@@ -393,7 +393,7 @@ document.addEventListener('click', function(event) {
             const matrixData = localStorage.getItem('matrixData');
             if (matrixData) {
                 const matrix = JSON.parse(matrixData);
-                createMatrixFromData(matrix);
+                return matrix;
             } else {
                 alert('没有找到矩阵数据');
             }
