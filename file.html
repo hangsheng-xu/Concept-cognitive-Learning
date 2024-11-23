@@ -345,7 +345,17 @@ document.addEventListener('click', function(event) {
     });
 });
 
+        function getCurrentMatrix() {
+            // 假设矩阵存储在 currentMatrix 变量中
+            return currentMatrix;
+        }
 
+        // 保存矩阵数据到LocalStorage
+        function saveToLocalStorage() {
+            const matrix = getCurrentMatrix();
+            localStorage.setItem('matrixData', JSON.stringify(matrix));
+            alert('矩阵数据已保存到LocalStorage');
+        }
 
         // 获取当前矩阵数据
         function generateConceptLattice() {
