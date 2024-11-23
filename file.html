@@ -348,118 +348,49 @@ document.addEventListener('click', function(event) {
 
 
         // 获取当前矩阵数据
-        function getCurrentMatrix() {
-            // 假设矩阵存储在 currentMatrix 变量中
-            return currentMatrix;
-        }
-
-        // 跳转到生成概念格页面并传递矩阵数据
         function generateConceptLattice() {
-    const matrix = getCurrentMatrix();
-    const matrixData = JSON.stringify(matrix);
-
-    // 替换为你的 API URL
-    const apiUrl = 'https://hangsheng-xu.github.io/Concept-cognitive-Learning/file#';
-
-    fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: matrixData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+            saveToLocalStorage();
+            window.location.href = '/Concept-cognitive-Learning/conceptLattice';
         }
-        return response.json(); // 假设 API 返回 JSON
-    })
-    .then(data => {
-        console.log('Success:', data);
-        // 在这里处理成功响应
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        // 在这里处理错误
-    });
-}
-
-
 
         function generateiceberg() {
-            const matrix = getCurrentMatrix();
-            const matrixData = JSON.stringify(matrix);
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/Concept-cognitive-Learning/iceberg';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'matrix';
-            input.value = matrixData;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            saveToLocalStorage();
+            window.location.href = '/Concept-cognitive-Learning/iceberg';
         }
 
         function generatecredible() {
-            const matrix = getCurrentMatrix();
-            const matrixData = JSON.stringify(matrix);
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/Concept-cognitive-Learning/credible';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'matrix';
-            input.value = matrixData;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            saveToLocalStorage();
+            window.location.href = '/Concept-cognitive-Learning/credible';
         }
 
         function generatetop_k() {
-            const matrix = getCurrentMatrix();
-            const matrixData = JSON.stringify(matrix);
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/Concept-cognitive-Learning/top_k';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'matrix';
-            input.value = matrixData;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            saveToLocalStorage();
+            window.location.href = '/Concept-cognitive-Learning/top_k';
         }
 
         function generatefuzzy() {
-            const matrix = getCurrentMatrix();
-            const matrixData = JSON.stringify(matrix);
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/Concept-cognitive-Learning/fuzzy';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'matrix';
-            input.value = matrixData;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            saveToLocalStorage();
+            window.location.href = '/Concept-cognitive-Learning/fuzzy';
         }
 
         function generatefairness() {
-            const matrix = getCurrentMatrix();
-            const matrixData = JSON.stringify(matrix);
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/Concept-cognitive-Learning/fairness';
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'matrix';
-            input.value = matrixData;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            saveToLocalStorage();
+            window.location.href = '/Concept-cognitive-Learning/fairness';
         }
+
+        // 在目标页面加载矩阵数据
+        function loadFromLocalStorage() {
+            const matrixData = localStorage.getItem('matrixData');
+            if (matrixData) {
+                const matrix = JSON.parse(matrixData);
+                createMatrixFromData(matrix);
+            } else {
+                alert('没有找到矩阵数据');
+            }
+        }
+
+        // 页面加载时调用loadFromLocalStorage函数
+        window.onload = loadFromLocalStorage;
     </script>
 </head>
 <body onload="toggleSubmenu(event, 'fileSubmenu', true)">
